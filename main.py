@@ -85,20 +85,18 @@ class GA:
                 newPop.append(chrom)
         self.pop=np.array(newPop)
 
-
     def getPop(self):
         return self.pop
     
     def getBestChrom(self):
         return self.bestChrom
-    
 
 if __name__ == "__main__":
     crossRate = 0.5
     maxIterations = 60
     popSize = 4
     strLength = 5
-    mutationRate = 0.1
+    mutationRate = 0.3
     seed = math.floor(np.random.rand()*1000)
     print("Seed: " + str(seed)) 
     printGenerations = True

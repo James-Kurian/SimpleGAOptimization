@@ -2,14 +2,14 @@ import math
 import numpy as np
 
 class GA:
-    def __init__(self, function, crossRate, maxIterations, strLength, popSize, printGenerations):
+    def __init__(self, function, crossRate, mutationRate, maxIterations, strLength, popSize, printGenerations):
         self.function = function
         self.crossRate = crossRate
+        self.mutationRate = mutationRate
         self.maxIterations = maxIterations
         self.bestChrom = None
         self.maxFit = -float("inf")
         self.currGen = 0
-        self.converged = False
         self.strLength = strLength
         self.popSize = popSize
         self.pop = self.initPop()
@@ -20,11 +20,10 @@ class GA:
             print("Gen 0:")
             print(self.pop)
 
-        while(self.currGen < self.maxIterations and not self.converged):
+        while(self.currGen < self.maxIterations):
             weights = self.fitness(self.pop)
-            self.pop = self.crossover(weights)
-            if ((self.pop==self.pop[0]).all()):
-                self.converged = True
+            self.crossover(weights)
+            self.mutate()
             self.currGen+=1
             if (self.printGenerations):
                 print("Gen " + str(self.currGen) + ":")
@@ -46,12 +45,14 @@ class GA:
                 self.maxFit = chromFit
             fitness = np.append(fitness, chromFit)
         fitness = fitness+abs(minFit)
-        self.pop = pop
-        return (fitness)/np.sum(fitness)
+        sum = np.sum(fitness)
+        if (sum==0):
+            return fitness.fill(1/len(pop))
+        return (fitness)/sum
     
     def crossover(self, weights):
         newPop = []
-        for doCross in np.random.rand(math.floor(len(self.pop)/2)) <= crossRate:
+        for doCross in np.random.rand(math.floor(len(self.pop)/2)) <= self.crossRate:
             #np.random.choice takes two arguments. First, an array of elems to choose. Second, an array with weights with respect to the first array. Effectivley this selection acts like a roulette wheel
             childOne = np.random.choice(self.pop, p=weights)
             childTwo = np.random.choice(self.pop, p=weights)
@@ -69,26 +70,40 @@ class GA:
                 newPop.extend(np.random.choice([childOne[:splitIndex] + childTwo[splitIndex:], childTwo[:splitIndex] + childOne[splitIndex:]]))
             else:
                 newPop.extend(childOne)
-        return np.array(newPop)
+        self.pop = np.array(newPop)
     
+    def mutate(self):
+        newPop = []
+        for chrom in self.pop:
+            if (mutationRate > np.random.rand()):
+                index = math.floor(np.random.rand()*strLength)
+                if (chrom[index]=="0"):
+                    newPop.append(chrom[:index] + "1" + chrom[index+1:])
+                else:
+                    newPop.append(chrom[:index] + "0" + chrom[index+1:])
+            else:
+                newPop.append(chrom)
+        self.pop=np.array(newPop)
+
+
     def getPop(self):
         return self.pop
     
     def getBestChrom(self):
         return self.bestChrom
     
-    def isConverged(self):
-        return self.converged
 
 if __name__ == "__main__":
     crossRate = 0.5
     maxIterations = 60
     popSize = 4
     strLength = 5
+    mutationRate = 0.1
     seed = math.floor(np.random.rand()*1000)
+    print("Seed: " + str(seed)) 
     printGenerations = True
     np.random.seed(seed)
-    simpleGeneticAlgorithm = GA(lambda x : (-x**2 + 8*x + 15), crossRate, maxIterations, strLength, popSize, printGenerations)
+    simpleGeneticAlgorithm = GA(lambda x : (-x**2 + 8*x + 15), crossRate, mutationRate, maxIterations, strLength, popSize, printGenerations)
     startPop = simpleGeneticAlgorithm.getPop()
     simpleGeneticAlgorithm.run()
 
@@ -96,5 +111,4 @@ if __name__ == "__main__":
     print ("Initial Pop: " + np.array_str(startPop))
     print ("Final Pop:   " + np.array_str(simpleGeneticAlgorithm.getPop()))
     print("Best Chrom: " + simpleGeneticAlgorithm.getBestChrom())
-    print("Converged: " + str(simpleGeneticAlgorithm.isConverged()))
-    print("Seed: " + str(seed))
+    print("Seed: " + str(seed)) 

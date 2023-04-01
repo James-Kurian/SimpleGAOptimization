@@ -21,7 +21,7 @@ class GA:
             print(self.pop)
 
         while(self.currGen < self.maxIterations):
-            weights = self.fitness(self.pop)
+            weights = self.fitness()
             self.crossover(weights)
             self.mutate()
             self.currGen+=1
@@ -32,10 +32,10 @@ class GA:
     def initPop(self):
         return np.array(["".join(np.random.randint(0,2,self.strLength).astype(str).tolist()) for x in range(self.popSize)])
     
-    def fitness(self, pop):
+    def fitness(self):
         fitness = np.array([])
         minFit = float("inf")
-        for chrom in pop:
+        for chrom in self.pop:
             x = int(chrom,2)
             chromFit = self.function(x)
             if (chromFit < minFit):
@@ -47,7 +47,7 @@ class GA:
         fitness = fitness+abs(minFit)
         sum = np.sum(fitness)
         if (sum==0):
-            return fitness.fill(1/len(pop))
+            return fitness.fill(1/len(self.pop))
         return (fitness)/sum
     
     def crossover(self, weights):
